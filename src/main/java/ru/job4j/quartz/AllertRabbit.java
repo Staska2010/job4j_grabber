@@ -16,7 +16,7 @@ public class AllertRabbit {
     private static final Logger LOG = LoggerFactory.getLogger(AllertRabbit.class.getName());
     private static Properties config = new Properties();
 
-    private static void init() {
+    private static void loadConfig() {
         try (InputStream is = AllertRabbit.class.getClassLoader().getResourceAsStream("rabbit.properties")) {
             config.load(is);
         } catch (IOException exc) {
@@ -25,27 +25,27 @@ public class AllertRabbit {
     }
 
     public static void main(String[] args) {
-        init();
+        loadConfig();
         try {
+            StdSchedulerFactory sf = new StdSchedulerFactory();
+            sf.initialize("rabbit.properties");
             Scheduler scheduler = StdSchedulerFactory.getDefaultScheduler();
             scheduler.start();
             JobDetail job = newJob(Rabbit.class).build();
             int interval = Integer.parseInt(config.getProperty("rabbit.interval", "10"));
-            SimpleScheduleBuilder times = simpleSchedule()
-                    .withIntervalInSeconds(interval)
-                    .repeatForever();
             Trigger trigger = newTrigger()
                     .startNow()
-                    .withSchedule(times)
+                    .withSchedule(simpleSchedule()
+                            .withIntervalInSeconds(interval)
+                            .repeatForever())
                     .build();
             scheduler.scheduleJob(job, trigger);
         } catch (SchedulerException exc) {
-           // LOG.error(exc.toString());
+            LOG.error(exc.toString());
         }
     }
 
     public static class Rabbit implements Job {
-
         @Override
         public void execute(JobExecutionContext jobExecutionContext) throws JobExecutionException {
             System.out.println("Rabbit runs here...");
