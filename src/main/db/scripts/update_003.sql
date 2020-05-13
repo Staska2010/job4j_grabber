@@ -1,0 +1,1 @@
+ALTER TABLE post ADD CONSTRAINT link_unique UNIQUE(link);
