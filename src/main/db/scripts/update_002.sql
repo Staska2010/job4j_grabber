@@ -1,0 +1,7 @@
+CREATE TABLE post(
+id SERIAL PRIMARY KEY,
+name CHAR VARYING(200),
+text TEXT,
+link TEXT,
+created TIMESTAMP
+);
