@@ -1,4 +1,4 @@
-package ru.job4j.html;
+package ru.job4j.grabber;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -62,7 +62,7 @@ public class SqlRuParse implements Parse {
             Whitelist whitelist = new Whitelist();
             whitelist.addTags("br");
             postDetails = Jsoup.clean(details.html(), whitelist);
-            postDetails = jobDetailsPage.toString().replaceAll("<br>", "");
+            postDetails = postDetails.replaceAll("<br>", "");
             postDetails = postDetails.replaceAll("\n\\s+", "\n");
         } catch (IOException exc) {
             LOG.error("Connection fault", exc);
@@ -75,7 +75,6 @@ public class SqlRuParse implements Parse {
         List<Post> result = new LinkedList<>();
         LocalDate localDate = LocalDate.now();
         Document doc;
-        int id = 0;
         for (int i = 1; i <= 5; i++) {
             try {
                 doc = Jsoup.connect(link + "/" + i).get();
@@ -83,16 +82,16 @@ public class SqlRuParse implements Parse {
                 for (Element td : row) {
                     if (isVacancyRow(td)) {
                         Post newPost = new Post();
-                        newPost.id = id;
+                        newPost.id = 0;
                         Element href = td.child(0);
                         newPost.link = href.attr("href");
-                        newPost.text = getJobDetails(href);
+                        newPost.name = href.text();
+                        newPost.description = getJobDetails(href);
                         Element next = td.lastElementSibling();
                         String dateTime = next.text();
                         localDate = parseDate(dateTime);
                         newPost.date = localDate;
                         result.add(newPost);
-                        id++;
                     }
                 }
             } catch (IOException exc) {
